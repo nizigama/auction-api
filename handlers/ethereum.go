@@ -22,6 +22,17 @@ func (eh *EthereumHandler) GetStatus(c *fiber.Ctx) error {
 	return c.JSON(status)
 }
 
+func (eh *EthereumHandler) GetStatistics(c *fiber.Ctx) error {
+
+	stats, err := eh.connection.Stats()
+	if err != nil {
+		log.Println(err)
+		return errorResponse(c, fiber.StatusInternalServerError, "Server error", nil)
+	}
+
+	return c.JSON(stats)
+}
+
 func (eh *EthereumHandler) History(c *fiber.Ctx) error {
 
 	bids, err := eh.connection.ListAllBids()

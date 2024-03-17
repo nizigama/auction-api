@@ -23,6 +23,11 @@ type AuctionStatus struct {
 	HighestBid int64 `json:"highestBid"`
 }
 
+type Stats struct {
+	Bids   int64 `json:"bids"`
+	Volume int64 `json:"volume"`
+}
+
 type Bid struct {
 	Sender string
 	Amount int64
@@ -216,4 +221,45 @@ func (ec *EthConnection) Bid(amount int64) error {
 	}
 
 	return nil
+}
+
+func (ec *EthConnection) Stats() (Stats, error) {
+
+	contractAddr, found := os.LookupEnv("CONTRACT_DEPLOYMENT_ADDR")
+	if !found {
+		return Stats{}, errors.New("contract address is needed to connect to the auction")
+	}
+
+	addr := common.HexToAddress(contractAddr)
+
+	query := ethereum.FilterQuery{
+		Addresses: []common.Address{
+			addr,
+		},
+	}
+
+	logs, err := ec.client.FilterLogs(context.Background(), query)
+	if err != nil {
+		return Stats{}, err
+	}
+
+	contractAbi, err := abi.JSON(strings.NewReader(SimpleAuctionMetaData.ABI))
+	if err != nil {
+		return Stats{}, err
+	}
+
+	var stats Stats
+
+	for _, eventLog := range logs {
+
+		event, err := contractAbi.Unpack("HighestBidIncreased", eventLog.Data)
+		if err != nil {
+			return Stats{}, err
+		}
+
+		stats.Bids += 1
+		stats.Volume += event[1].(*big.Int).Int64()
+	}
+
+	return stats, nil
 }
