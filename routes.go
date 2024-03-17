@@ -26,6 +26,7 @@ func loadRoutes(app *fiber.App, db *gorm.DB) error {
 	auctionRoutes := app.Use(authHandler.AuthMiddleware).Group("auction")
 
 	auctionRoutes.Get("status", ethHandler.GetStatus)
+	auctionRoutes.Get("bids", ethHandler.History)
 
 	return nil
 }
