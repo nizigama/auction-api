@@ -18,6 +18,7 @@ func loadRoutes(app *fiber.App, db *gorm.DB) error {
 	app.Get("/", handler.Hello)
 	app.Post("/register", authHandler.Register)
 	app.Post("/login", authHandler.Login)
+	app.Use(authHandler.AuthMiddleware).Post("/logout", authHandler.Logout)
 
 	return nil
 }

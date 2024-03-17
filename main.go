@@ -32,7 +32,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	err = db.AutoMigrate(&models.User{})
+	err = db.AutoMigrate(&models.User{}, &models.InvalidToken{})
 	if err != nil {
 		log.Fatalln(err)
 	}

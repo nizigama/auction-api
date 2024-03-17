@@ -118,3 +118,25 @@ func (ah *AuthHandler) Login(c *fiber.Ctx) error {
 		"token": t,
 	})
 }
+
+func (ah *AuthHandler) Logout(c *fiber.Ctx) error {
+
+	user := c.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	username := claims["username"].(string)
+
+	invalidToken := models.InvalidToken{
+		Username: username,
+		Token:    user.Raw,
+	}
+
+	err := ah.db.Create(&invalidToken).Error
+	if err != nil {
+		log.Println(err)
+		return errorResponse(c, fiber.StatusInternalServerError, "Server error", nil)
+	}
+
+	return successResponse(c, map[string]string{
+		"message": "Token invalidated successfully",
+	})
+}
