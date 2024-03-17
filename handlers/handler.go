@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"Web3AuctionApi/business"
 	"Web3AuctionApi/models"
 	"errors"
 	"fmt"
@@ -22,7 +23,28 @@ type AuthHandler struct {
 	AuthMiddleware fiber.Handler
 }
 
-type Handler struct{}
+type EthereumHandler struct {
+	instanceUrl string
+	connection  *business.EthConnection
+}
+
+func NewEthereumHandler() (*EthereumHandler, error) {
+
+	instanceUrl, found := os.LookupEnv("INSTANCE_URL")
+	if !found {
+		return nil, errors.New("Instance url is needed to connect to an ethereum node")
+	}
+
+	conn, err := business.NewBlockchainConnection()
+	if err != nil {
+		return nil, err
+	}
+
+	return &EthereumHandler{
+		instanceUrl: instanceUrl,
+		connection:  conn,
+	}, nil
+}
 
 func NewAuthHandler(db *gorm.DB) (*AuthHandler, error) {
 
@@ -90,7 +112,7 @@ func NewAuthHandler(db *gorm.DB) (*AuthHandler, error) {
 	}, nil
 }
 
-func (h *Handler) Hello(c *fiber.Ctx) error {
+func Hello(c *fiber.Ctx) error {
 
 	return c.JSON(map[string]interface{}{
 		"message": "Hello, World!",

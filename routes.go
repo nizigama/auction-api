@@ -8,17 +8,24 @@ import (
 
 func loadRoutes(app *fiber.App, db *gorm.DB) error {
 
-	handler := new(handlers.Handler)
-
 	authHandler, err := handlers.NewAuthHandler(db)
 	if err != nil {
 		return err
 	}
 
-	app.Get("/", handler.Hello)
+	ethHandler, err := handlers.NewEthereumHandler()
+	if err != nil {
+		return err
+	}
+
+	app.Get("/", handlers.Hello)
 	app.Post("/register", authHandler.Register)
 	app.Post("/login", authHandler.Login)
 	app.Use(authHandler.AuthMiddleware).Post("/logout", authHandler.Logout)
+
+	auctionRoutes := app.Use(authHandler.AuthMiddleware).Group("auction")
+
+	auctionRoutes.Get("status", ethHandler.GetStatus)
 
 	return nil
 }
