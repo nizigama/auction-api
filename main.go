@@ -1,9 +1,12 @@
 package main
 
 import (
+	"Web3AuctionApi/models"
 	"fmt"
+	"github.com/glebarez/sqlite"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
+	"gorm.io/gorm"
 	"log"
 	"os"
 )
@@ -24,11 +27,20 @@ func main() {
 
 	app := fiber.New()
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.JSON(map[string]interface{}{
-			"message": "Hello, World!",
-		})
-	})
+	db, err := gorm.Open(sqlite.Open("database.sqlite"), &gorm.Config{})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	err = db.AutoMigrate(&models.User{})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	err = loadRoutes(app, db)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	err = app.Listen(fmt.Sprintf(":%s", appPort))
 	if err != nil {
