@@ -1,22 +1,46 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
+	"os"
+	"strconv"
 )
 
 type AuthHandler struct {
-	db *gorm.DB
+	db            *gorm.DB
+	tokenDuration int64
+	authSecret    string
 }
 
 type Handler struct{}
 
 func NewAuthHandler(db *gorm.DB) (*AuthHandler, error) {
 
+	defaultDurationInSeconds := 7200
+
+	authSecret, found := os.LookupEnv("AUTH_SECRET")
+	if !found {
+		return nil, errors.New("Authentication secret is needed to sign tokens")
+	}
+
+	durationInSeconds, found := os.LookupEnv("AUTH_TOKEN_DURATION")
+	if !found {
+		durationInSeconds = strconv.Itoa(defaultDurationInSeconds)
+	}
+
+	v, err := strconv.Atoi(durationInSeconds)
+	if err != nil {
+		durationInSeconds = strconv.Itoa(defaultDurationInSeconds)
+	}
+
 	return &AuthHandler{
-		db: db,
+		db:            db,
+		tokenDuration: int64(v),
+		authSecret:    authSecret,
 	}, nil
 }
 
