@@ -3,6 +3,7 @@ package main
 import (
 	"Web3AuctionApi/handlers"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"gorm.io/gorm"
 )
 
@@ -17,6 +18,12 @@ func loadRoutes(app *fiber.App, db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
+
+	app.Use(recover.New(recover.Config{
+		Next:              nil,
+		EnableStackTrace:  false,
+		StackTraceHandler: nil,
+	}))
 
 	app.Get("/", handlers.Hello)
 	app.Post("/register", authHandler.Register)
