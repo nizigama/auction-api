@@ -1,12 +1,18 @@
 package business
 
 import (
+	"bytes"
 	"context"
+	"encoding/hex"
 	"errors"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"log"
 	"math/big"
 	"os"
 	"strings"
@@ -24,6 +30,13 @@ type Bid struct {
 
 type EthConnection struct {
 	client *ethclient.Client
+}
+
+type HigherBidAlreadySubmitted struct{}
+
+func (err HigherBidAlreadySubmitted) Error() string {
+
+	return "There already is a higher bid"
 }
 
 func NewBlockchainConnection() (*EthConnection, error) {
@@ -124,4 +137,83 @@ func (ec *EthConnection) ListAllBids() ([]Bid, error) {
 	}
 
 	return bids, nil
+}
+
+func (ec *EthConnection) Bid(amount int64) error {
+
+	contractAddr, found := os.LookupEnv("CONTRACT_DEPLOYMENT_ADDR")
+	if !found {
+		return errors.New("contract address is needed to connect to the auction")
+	}
+
+	addr := common.HexToAddress(contractAddr)
+
+	acn, err := NewSimpleAuction(addr, ec.client)
+	if err != nil {
+		return err
+	}
+
+	bidderKey, found := os.LookupEnv("BIDDER_ACC_PRIVATE_KEY")
+	if !found {
+		return errors.New("bidder private is required to submit a bid to the auction")
+	}
+
+	ks := keystore.NewKeyStore("./keys", keystore.StandardScryptN, keystore.StandardScryptP)
+
+	privateKeyBytes, err := hex.DecodeString(bidderKey)
+	if err != nil {
+		log.Println(err, "----1")
+		return err
+	}
+
+	privateKey, err := crypto.ToECDSA(privateKeyBytes)
+	if err != nil {
+		log.Println(err, "----2")
+		return err
+	}
+
+	// no need to add passphrases since the key is deleted right away
+	acc, err := ks.ImportECDSA(privateKey, "")
+	if err != nil {
+		log.Println(err, "----3")
+		return err
+	}
+
+	key, err := ks.Export(acc, "", "")
+	if err != nil {
+		log.Println(err, "----4")
+		return err
+	}
+
+	err = ks.Delete(acc, "")
+	if err != nil {
+		log.Println(err, "----5")
+		return err
+	}
+
+	chainId, err := ec.client.ChainID(context.Background())
+	if err != nil {
+		log.Println(err, "----6")
+		return err
+	}
+
+	auth, err := bind.NewTransactorWithChainID(bytes.NewReader(key), "", chainId)
+	if err != nil {
+		log.Printf("Failed to create authorized transactor: %v", err)
+		return err
+	}
+
+	auth.Value = big.NewInt(amount)
+
+	_, err = acn.Bid(auth)
+	if err != nil {
+
+		if strings.Contains(err.Error(), "There already is a higher bid") {
+			return HigherBidAlreadySubmitted{}
+		}
+
+		return err
+	}
+
+	return nil
 }

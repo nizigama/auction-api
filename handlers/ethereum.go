@@ -1,9 +1,15 @@
 package handlers
 
 import (
+	"Web3AuctionApi/business"
+	"errors"
 	"github.com/gofiber/fiber/v2"
 	"log"
 )
+
+type bidRequest struct {
+	Amount int64 `validate:"required,numeric,min=1" json:"amount"`
+}
 
 func (eh *EthereumHandler) GetStatus(c *fiber.Ctx) error {
 
@@ -25,4 +31,34 @@ func (eh *EthereumHandler) History(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(bids)
+}
+
+func (eh *EthereumHandler) Bid(c *fiber.Ctx) error {
+
+	bidData := bidRequest{}
+
+	err := c.BodyParser(&bidData)
+	if err != nil {
+		return errorResponse(c, fiber.StatusBadRequest, err.Error(), nil)
+	}
+
+	validationErrors := validateRequest(bidData)
+	if validationErrors != nil {
+		return errorResponse(c, fiber.StatusBadRequest, "Validation failed", validationErrors)
+	}
+
+	err = eh.connection.Bid(bidData.Amount)
+	if err != nil && !errors.Is(err, business.HigherBidAlreadySubmitted{}) {
+		log.Println(err)
+		return errorResponse(c, fiber.StatusInternalServerError, "Server error", nil)
+	}
+
+	if errors.Is(err, business.HigherBidAlreadySubmitted{}) {
+
+		return errorResponse(c, fiber.StatusBadRequest, err.Error(), nil)
+	}
+
+	return successResponse(c, map[string]string{
+		"message": "Bid successful",
+	})
 }

@@ -19,11 +19,7 @@ func loadRoutes(app *fiber.App, db *gorm.DB) error {
 		return err
 	}
 
-	app.Use(recover.New(recover.Config{
-		Next:              nil,
-		EnableStackTrace:  false,
-		StackTraceHandler: nil,
-	}))
+	app.Use(recover.New())
 
 	app.Get("/", handlers.Hello)
 	app.Post("/register", authHandler.Register)
@@ -34,6 +30,7 @@ func loadRoutes(app *fiber.App, db *gorm.DB) error {
 
 	auctionRoutes.Get("status", ethHandler.GetStatus)
 	auctionRoutes.Get("bids", ethHandler.History)
+	auctionRoutes.Post("bid", ethHandler.Bid)
 
 	return nil
 }
