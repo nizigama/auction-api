@@ -6,8 +6,6 @@ WORKDIR /opt/auction-api
 
 COPY . .
 
-RUN go build && chmod +x ./Web3AuctionApi
-
 EXPOSE 3000
 
-ENTRYPOINT ["./Web3AuctionApi"]
+ENTRYPOINT ["go", "run", "./..."]
