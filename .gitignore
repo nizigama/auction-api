@@ -1,2 +1,6 @@
 .idea
 .env
+database.sqlite
+Web3AuctionApi
+keys
+docs
