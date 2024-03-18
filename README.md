@@ -34,7 +34,7 @@ You may download and install golang locally to run the project or use docker, we
 - Run tests
     ```shell
     # Unix & Linux
-    docker run --rm -v $(pwd):/opt/auction-api -w /opt/auction-api golang:1.21.8-alpine go test ./...
+    docker run --rm -v $(pwd):/opt/auction-api -w /opt/auction-api golang:1.21.8-alpine go test tests/*.go -v
     ```
 
 ##### Using installed go
@@ -46,10 +46,6 @@ You may download and install golang locally to run the project or use docker, we
     ```shell
     go run *.go
     ```
-- Run tests
-    ```shell
-    go test ./...
-    ```
 -  Install documentation generator
     ```shell
     go install github.com/swaggo/swag/cmd/swag@latest
@@ -57,4 +53,8 @@ You may download and install golang locally to run the project or use docker, we
 - Generate documentation
     ```shell
     swag init
+    ```
+- Run tests
+    ```shell
+    go test tests/*.go -v
     ```
