@@ -4,6 +4,7 @@ import (
 	"Web3AuctionApi/handlers"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/swagger"
 	"gorm.io/gorm"
 )
 
@@ -22,6 +23,7 @@ func loadRoutes(app *fiber.App, db *gorm.DB) error {
 	app.Use(recover.New())
 
 	app.Get("/", handlers.Hello)
+	app.Get("/docs/*", swagger.HandlerDefault) // default
 	app.Post("/register", authHandler.Register)
 	app.Post("/login", authHandler.Login)
 	app.Use(authHandler.AuthMiddleware).Post("/logout", authHandler.Logout)

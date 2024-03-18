@@ -22,6 +22,17 @@ type loginRequest struct {
 	Password string `validate:"required,min=6" json:"password"`
 }
 
+// Register func for registration
+// @Description Register.
+// @Summary Register
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body registerRequest true "New user"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string "Validation failed"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /register [post]
 func (ah *AuthHandler) Register(c *fiber.Ctx) error {
 
 	registrationData := registerRequest{}
@@ -67,6 +78,18 @@ func (ah *AuthHandler) Register(c *fiber.Ctx) error {
 	})
 }
 
+// Login func for login
+// @Description Login.
+// @Summary Login
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body loginRequest true "Login user"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string "Validation failed"
+// @Failure 403 {object} map[string]string "Credentials not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /login [post]
 func (ah *AuthHandler) Login(c *fiber.Ctx) error {
 
 	loginData := loginRequest{}
@@ -119,6 +142,17 @@ func (ah *AuthHandler) Login(c *fiber.Ctx) error {
 	})
 }
 
+// Logout func for logout
+// @Description Logout.
+// @Summary Logout
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {object} map[string]string
+// @Failure 403 {object} map[string]string "Unauthenticated."
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /logout [post]
 func (ah *AuthHandler) Logout(c *fiber.Ctx) error {
 
 	user := c.Locals("user").(*jwt.Token)

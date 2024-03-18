@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "Web3AuctionApi/docs"
 	"Web3AuctionApi/models"
 	"fmt"
 	"github.com/glebarez/sqlite"
@@ -13,6 +14,19 @@ import (
 
 const defaultServerPort = "3000"
 
+// @title Auction contract API
+// @version 1.0
+// @description This is the API for the auction contract
+// @termsOfService http://swagger.io/terms/
+// @contact.name API Support
+// @contact.email fiber@swagger.io
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+// @host localhost:3000
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
+// @BasePath /
 func main() {
 
 	err := godotenv.Load()

@@ -112,6 +112,14 @@ func NewAuthHandler(db *gorm.DB) (*AuthHandler, error) {
 	}, nil
 }
 
+// Hello godoc
+// @Summary      Welcome
+// @Description  Welcome
+// @Tags         welcome
+// @Accept       json
+// @Produce      json
+// @Success      200  {array}   map[string]string
+// @Router       / [get]
 func Hello(c *fiber.Ctx) error {
 
 	return c.JSON(map[string]interface{}{

@@ -16,6 +16,15 @@ type deployRequest struct {
 	BeneficiaryAddress string `validate:"required,hexadecimal" json:"beneficiaryAddress"`
 }
 
+// GetStatus godoc
+// @Summary      Get auction status
+// @Description  Auction status
+// @Tags         auction
+// @Accept       json
+// @Produce      json
+// @Security ApiKeyAuth
+// @Success      200  {array}   business.AuctionStatus
+// @Router       /auction/status [get]
 func (eh *EthereumHandler) GetStatus(c *fiber.Ctx) error {
 
 	status, err := eh.Connection.GetAuctionStatus()
@@ -27,6 +36,15 @@ func (eh *EthereumHandler) GetStatus(c *fiber.Ctx) error {
 	return c.JSON(status)
 }
 
+// GetStatistics godoc
+// @Summary      Get auction statistics
+// @Description  Auction statistics
+// @Tags         auction
+// @Accept       json
+// @Produce      json
+// @Security ApiKeyAuth
+// @Success      200  {array}   business.Stats
+// @Router       /auction/statistics [get]
 func (eh *EthereumHandler) GetStatistics(c *fiber.Ctx) error {
 
 	stats, err := eh.Connection.Stats()
@@ -38,6 +56,15 @@ func (eh *EthereumHandler) GetStatistics(c *fiber.Ctx) error {
 	return c.JSON(stats)
 }
 
+// History godoc
+// @Summary      List bids
+// @Description  Bids history
+// @Tags         auction
+// @Accept       json
+// @Produce      json
+// @Security ApiKeyAuth
+// @Success      200  {array}   []business.Bid
+// @Router       /auction/history [get]
 func (eh *EthereumHandler) History(c *fiber.Ctx) error {
 
 	bids, err := eh.Connection.ListAllBids()
@@ -49,6 +76,18 @@ func (eh *EthereumHandler) History(c *fiber.Ctx) error {
 	return c.JSON(bids)
 }
 
+// Bid func bidding
+// @Description Bid.
+// @Summary Bid
+// @Tags auction
+// @Accept json
+// @Produce json
+// @Param request body bidRequest true "Bid"
+// @Security ApiKeyAuth
+// @Success 200 {object} map[string]string
+// @Failure 403 {object} map[string]string "Unauthenticated."
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /auction/bid [post]
 func (eh *EthereumHandler) Bid(c *fiber.Ctx) error {
 
 	bidData := bidRequest{}
@@ -84,6 +123,18 @@ func (eh *EthereumHandler) Bid(c *fiber.Ctx) error {
 	})
 }
 
+// Deploy func deployment
+// @Description Deploy contract.
+// @Summary Deploy contract
+// @Tags auction
+// @Accept json
+// @Produce json
+// @Param request body deployRequest true "Deployment"
+// @Security ApiKeyAuth
+// @Success 200 {object} map[string]string
+// @Failure 403 {object} map[string]string "Unauthenticated."
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /auction/deploy [post]
 func (eh *EthereumHandler) Deploy(c *fiber.Ctx) error {
 
 	reqData := deployRequest{}
