@@ -1,0 +1,14 @@
+services:
+  auction-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - '.:/opt/auction-api'
+    networks:
+      - auction
+networks:
+  auction:
+    driver: bridge
