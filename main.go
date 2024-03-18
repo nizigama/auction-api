@@ -29,7 +29,13 @@ const defaultServerPort = "3000"
 // @BasePath /
 func main() {
 
-	err := godotenv.Load()
+	envFile := ".env"
+
+	if len(os.Args) > 1 {
+		envFile = os.Args[1]
+	}
+
+	err := godotenv.Load(envFile)
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
