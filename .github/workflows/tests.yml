@@ -17,4 +17,4 @@ jobs:
       - name: Install dependencies
         run: go mod download
       - name: Test with Go
-        run: go test ./...
+        run: go test tests/*.go -v
