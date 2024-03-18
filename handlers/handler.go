@@ -25,7 +25,7 @@ type AuthHandler struct {
 
 type EthereumHandler struct {
 	instanceUrl string
-	connection  *business.EthConnection
+	Connection  business.Connection
 }
 
 func NewEthereumHandler() (*EthereumHandler, error) {
@@ -42,7 +42,7 @@ func NewEthereumHandler() (*EthereumHandler, error) {
 
 	return &EthereumHandler{
 		instanceUrl: instanceUrl,
-		connection:  conn,
+		Connection:  conn,
 	}, nil
 }
 

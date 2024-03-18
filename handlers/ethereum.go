@@ -18,7 +18,7 @@ type deployRequest struct {
 
 func (eh *EthereumHandler) GetStatus(c *fiber.Ctx) error {
 
-	status, err := eh.connection.GetAuctionStatus()
+	status, err := eh.Connection.GetAuctionStatus()
 	if err != nil {
 		log.Println(err)
 		return errorResponse(c, fiber.StatusInternalServerError, "Server error", nil)
@@ -29,7 +29,7 @@ func (eh *EthereumHandler) GetStatus(c *fiber.Ctx) error {
 
 func (eh *EthereumHandler) GetStatistics(c *fiber.Ctx) error {
 
-	stats, err := eh.connection.Stats()
+	stats, err := eh.Connection.Stats()
 	if err != nil {
 		log.Println(err)
 		return errorResponse(c, fiber.StatusInternalServerError, "Server error", nil)
@@ -40,7 +40,7 @@ func (eh *EthereumHandler) GetStatistics(c *fiber.Ctx) error {
 
 func (eh *EthereumHandler) History(c *fiber.Ctx) error {
 
-	bids, err := eh.connection.ListAllBids()
+	bids, err := eh.Connection.ListAllBids()
 	if err != nil {
 		log.Println(err)
 		return errorResponse(c, fiber.StatusInternalServerError, "Server error", nil)
@@ -63,13 +63,18 @@ func (eh *EthereumHandler) Bid(c *fiber.Ctx) error {
 		return errorResponse(c, fiber.StatusBadRequest, "Validation failed", validationErrors)
 	}
 
-	err = eh.connection.Bid(bidData.Amount)
-	if err != nil && !errors.Is(err, business.HigherBidAlreadySubmitted{}) {
+	err = eh.Connection.Bid(bidData.Amount)
+	if err != nil && !errors.Is(err, business.HigherBidAlreadySubmitted{}) && !errors.Is(err, business.AuctionEnded{}) {
 		log.Println(err)
 		return errorResponse(c, fiber.StatusInternalServerError, "Server error", nil)
 	}
 
 	if errors.Is(err, business.HigherBidAlreadySubmitted{}) {
+
+		return errorResponse(c, fiber.StatusBadRequest, err.Error(), nil)
+	}
+
+	if errors.Is(err, business.AuctionEnded{}) {
 
 		return errorResponse(c, fiber.StatusBadRequest, err.Error(), nil)
 	}
@@ -93,7 +98,7 @@ func (eh *EthereumHandler) Deploy(c *fiber.Ctx) error {
 		return errorResponse(c, fiber.StatusBadRequest, "Validation failed", validationErrors)
 	}
 
-	contractAddr, txHash, err := eh.connection.Deploy(reqData.DurationInSeconds, reqData.BeneficiaryAddress)
+	contractAddr, txHash, err := eh.Connection.Deploy(reqData.DurationInSeconds, reqData.BeneficiaryAddress)
 	if err != nil && !errors.Is(err, business.HigherBidAlreadySubmitted{}) {
 		log.Println(err)
 		return errorResponse(c, fiber.StatusInternalServerError, "Server error", nil)

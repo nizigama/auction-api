@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/stretchr/testify/mock"
 	"log"
 	"math/big"
 	"os"
@@ -37,11 +38,29 @@ type EthConnection struct {
 	client *ethclient.Client
 }
 
+type EthConnectionMock struct {
+	mock.Mock
+}
+
 type HigherBidAlreadySubmitted struct{}
+type AuctionEnded struct{}
+
+type Connection interface {
+	GetAuctionStatus() (AuctionStatus, error)
+	ListAllBids() ([]Bid, error)
+	Bid(amount int64) error
+	Stats() (Stats, error)
+	Deploy(durationInSeconds int64, beneficiaryAddress string) (string, string, error)
+}
 
 func (err HigherBidAlreadySubmitted) Error() string {
 
 	return "There already is a higher bid"
+}
+
+func (err AuctionEnded) Error() string {
+
+	return "Auction already ended"
 }
 
 func NewBlockchainConnection() (*EthConnection, error) {
@@ -217,6 +236,10 @@ func (ec *EthConnection) Bid(amount int64) error {
 			return HigherBidAlreadySubmitted{}
 		}
 
+		if strings.Contains(err.Error(), "Auction already ended") {
+			return AuctionEnded{}
+		}
+
 		return err
 	}
 
@@ -324,4 +347,34 @@ func (ec *EthConnection) Deploy(durationInSeconds int64, beneficiaryAddress stri
 	}
 
 	return address.String(), tx.Hash().String(), nil
+}
+
+func (m *EthConnectionMock) GetAuctionStatus() (AuctionStatus, error) {
+
+	args := m.Called()
+	return args.Get(0).(AuctionStatus), args.Error(1)
+}
+
+func (m *EthConnectionMock) ListAllBids() ([]Bid, error) {
+
+	args := m.Called()
+	return args.Get(0).([]Bid), args.Error(1)
+}
+
+func (m *EthConnectionMock) Bid(amount int64) error {
+
+	args := m.Called(amount)
+	return args.Error(0)
+}
+
+func (m *EthConnectionMock) Stats() (Stats, error) {
+
+	args := m.Called()
+	return args.Get(0).(Stats), args.Error(1)
+}
+
+func (m *EthConnectionMock) Deploy(durationInSeconds int64, beneficiaryAddress string) (string, string, error) {
+
+	args := m.Called(durationInSeconds, beneficiaryAddress)
+	return args.Get(0).(string), args.Get(1).(string), args.Error(2)
 }
