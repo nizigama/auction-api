@@ -11,6 +11,11 @@ type bidRequest struct {
 	Amount int64 `validate:"required,numeric,min=1" json:"amount"`
 }
 
+type deployRequest struct {
+	DurationInSeconds  int64  `validate:"required,numeric,min=1" json:"durationInSeconds"`
+	BeneficiaryAddress string `validate:"required,hexadecimal" json:"beneficiaryAddress"`
+}
+
 func (eh *EthereumHandler) GetStatus(c *fiber.Ctx) error {
 
 	status, err := eh.connection.GetAuctionStatus()
@@ -71,5 +76,32 @@ func (eh *EthereumHandler) Bid(c *fiber.Ctx) error {
 
 	return successResponse(c, map[string]string{
 		"message": "Bid successful",
+	})
+}
+
+func (eh *EthereumHandler) Deploy(c *fiber.Ctx) error {
+
+	reqData := deployRequest{}
+
+	err := c.BodyParser(&reqData)
+	if err != nil {
+		return errorResponse(c, fiber.StatusBadRequest, err.Error(), nil)
+	}
+
+	validationErrors := validateRequest(reqData)
+	if validationErrors != nil {
+		return errorResponse(c, fiber.StatusBadRequest, "Validation failed", validationErrors)
+	}
+
+	contractAddr, txHash, err := eh.connection.Deploy(reqData.DurationInSeconds, reqData.BeneficiaryAddress)
+	if err != nil && !errors.Is(err, business.HigherBidAlreadySubmitted{}) {
+		log.Println(err)
+		return errorResponse(c, fiber.StatusInternalServerError, "Server error", nil)
+	}
+
+	return successResponse(c, map[string]string{
+		"message":         "Deployment successful",
+		"contractAddress": contractAddr,
+		"transactionHash": txHash,
 	})
 }

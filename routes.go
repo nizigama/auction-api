@@ -32,6 +32,7 @@ func loadRoutes(app *fiber.App, db *gorm.DB) error {
 	auctionRoutes.Get("bids", ethHandler.History)
 	auctionRoutes.Post("bid", ethHandler.Bid)
 	auctionRoutes.Get("statistics", ethHandler.GetStatistics)
+	auctionRoutes.Post("deploy", ethHandler.Deploy)
 
 	return nil
 }

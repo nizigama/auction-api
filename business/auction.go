@@ -263,3 +263,65 @@ func (ec *EthConnection) Stats() (Stats, error) {
 
 	return stats, nil
 }
+
+func (ec *EthConnection) Deploy(durationInSeconds int64, beneficiaryAddress string) (string, string, error) {
+
+	deployerKey, found := os.LookupEnv("DEPLOYER_ACC_PRIVATE_KEY")
+	if !found {
+		return "", "", errors.New("deployer private is required to deploy the auction contract")
+	}
+
+	ks := keystore.NewKeyStore("./keys", keystore.StandardScryptN, keystore.StandardScryptP)
+
+	privateKeyBytes, err := hex.DecodeString(deployerKey)
+	if err != nil {
+		log.Println(err)
+		return "", "", err
+	}
+
+	privateKey, err := crypto.ToECDSA(privateKeyBytes)
+	if err != nil {
+		log.Println(err)
+		return "", "", err
+	}
+
+	acc, err := ks.ImportECDSA(privateKey, "")
+	if err != nil {
+		log.Println(err)
+		return "", "", err
+	}
+
+	key, err := ks.Export(acc, "", "")
+	if err != nil {
+		log.Println(err)
+		return "", "", err
+	}
+
+	err = ks.Delete(acc, "")
+	if err != nil {
+		log.Println(err)
+		return "", "", err
+	}
+
+	chainId, err := ec.client.ChainID(context.Background())
+	if err != nil {
+		log.Println(err)
+		return "", "", err
+	}
+
+	auth, err := bind.NewTransactorWithChainID(bytes.NewReader(key), "", chainId)
+	if err != nil {
+		log.Printf("Failed to create authorized transactor: %v", err)
+		return "", "", err
+	}
+
+	beneficiary := common.HexToAddress(beneficiaryAddress)
+
+	address, tx, _, err := DeploySimpleAuction(auth, ec.client, big.NewInt(durationInSeconds), beneficiary)
+	if err != nil {
+		log.Printf("Failed to deploy new auction contract: %v", err)
+		return "", "", err
+	}
+
+	return address.String(), tx.Hash().String(), nil
+}
