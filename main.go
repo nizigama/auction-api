@@ -22,7 +22,7 @@ const defaultServerPort = "3000"
 // @contact.email fiber@swagger.io
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
-// @host http://209.97.166.162:3000
+// @host 209.97.166.162:3000
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name Authorization
