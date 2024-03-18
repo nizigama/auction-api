@@ -64,7 +64,7 @@ func (eh *EthereumHandler) GetStatistics(c *fiber.Ctx) error {
 // @Produce      json
 // @Security ApiKeyAuth
 // @Success      200  {array}   []business.Bid
-// @Router       /auction/history [get]
+// @Router       /auction/bids [get]
 func (eh *EthereumHandler) History(c *fiber.Ctx) error {
 
 	bids, err := eh.Connection.ListAllBids()
